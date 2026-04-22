@@ -1,0 +1,119 @@
+import React, { useState, useEffect } from 'react';
+import { Header } from './components/Header';
+import { Hero } from './components/Hero';
+import { Footer } from './components/Footer';
+import { TermsModal } from './components/TermsModal';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { ShipPage } from './pages/ShipPage';
+import { ConfirmationPage } from './pages/ConfirmationPage';
+import { translations } from './translations';
+
+type Page = 'home' | 'ship' | 'confirmation';
+
+const AppContent: React.FC = () => {
+  const { language, t } = useLanguage();
+  const [activePage, setActivePage] = useState<Page>('home');
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
+  const [consentAccepted, setConsentAccepted] = useState(false);
+  const [shipmentResponse, setShipmentResponse] = useState<any>(null);
+
+  useEffect(() => {
+    if (!sessionStorage.getItem('isRefreshed')) {
+      sessionStorage.setItem('isRefreshed', 'true');
+      window.location.reload();
+    }
+  }, []);
+
+  // Browser navigation / close / refresh protection
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (activePage === 'ship') {
+        const msg = t('leaveSiteBody' as any) || "Changes you made may not be saved.";
+        e.preventDefault();
+        e.returnValue = msg;
+        return msg;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [activePage, language, t]);
+
+  const confirmNavigation = () => {
+    if (activePage === 'ship') {
+      return window.confirm(t('leaveSiteBody' as any) || "Changes you made may not be saved.");
+    }
+    return true;
+  };
+
+  const handleStartShipment = () => {
+    setActivePage('ship');
+  };
+
+  const handleClearShipper = () => {
+    if (window.confirm(translations[language].clearHistoryConfirm)) {
+      localStorage.removeItem('shipperData');
+      window.location.reload();
+    }
+  };
+
+  const handleFinishShipment = (response: any) => {
+    setShipmentResponse(response);
+    setActivePage('confirmation');
+  };
+
+  const handleNavigateHome = () => {
+    if (confirmNavigation()) {
+      setActivePage('home');
+    }
+  };
+
+  const renderPage = () => {
+    switch (activePage) {
+      case 'ship':
+        return <ShipPage onFinish={handleFinishShipment} onBack={() => handleNavigateHome()} />;
+      case 'confirmation':
+        return <ConfirmationPage response={shipmentResponse} onNewShipment={() => setActivePage('ship')} onBackHome={() => handleNavigateHome()} />;
+      default:
+        return (
+          <Hero 
+            onOpenTerms={() => setIsTermsModalOpen(true)} 
+            consentAccepted={consentAccepted}
+            onToggleConsent={setConsentAccepted}
+            onStartShipment={handleStartShipment}
+          />
+        );
+    }
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen font-sans selection:bg-dhl-yellow selection:text-dhl-red">
+      <Header onNavigateHome={() => handleNavigateHome()} onClearShipper={handleClearShipper} />
+      
+      <main className="flex-grow container mx-auto px-6 py-6 md:py-12 lg:px-20 max-w-7xl">
+        {renderPage()}
+      </main>
+
+      <Footer />
+
+      <TermsModal 
+        isOpen={isTermsModalOpen}
+        onClose={() => setIsTermsModalOpen(false)}
+        onAccept={() => {
+          setConsentAccepted(true);
+          setIsTermsModalOpen(false);
+          sessionStorage.setItem('termsAccepted', 'true');
+        }}
+      />
+    </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+};
+
+export default App;

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHL Backup Solution Admin - Shipment Search</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+	<link rel="icon" href="DBS_Icon2.jpg" type="image/jpg">
+    <style>
+        .table-responsive { display: block; width: 100%; overflow-x: auto; }
+        thead th { position: sticky; top: 0; z-index: 10; }
+        thead { background-color: #f3f4f6; }
+        .dark-mode thead { background-color: #1f2937; }
+        tbody tr:hover { background-color: #f9fafb; }
+        .dark-mode tbody tr:hover { background-color: #374151; }
+        .btn-download { padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 600; border-radius: 0.375rem; border: 1px solid transparent; transition: all 0.2s ease-in-out; cursor: pointer; }
+        .btn-download-label { background-color: #dc2626; color: white; }
+        .btn-download-label:hover { background-color: #b91c1c; }
+        .btn-download-doc { background-color: #6b7280; color: white; }
+        .btn-download-doc:hover { background-color: #4b5563; }
+        .filter-group { border: 1px solid #e5e7eb; border-radius: 0.5rem; padding: 1rem; margin-bottom: 1rem; }
+        .dark-mode .filter-group { border-color: #374151; }
+        .filter-group legend { padding: 0 0.5rem; font-weight: 600; font-size: 0.875rem; }
+        .sortable-header { cursor: pointer; position: relative; user-select: none; }
+        .sortable-header:hover { background-color: #e5e7eb; }
+        .dark-mode .sortable-header:hover { background-color: #374151; }
+        .sort-indicator { display: inline-block; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; margin-left: 5px; vertical-align: middle; opacity: 0.4; transition: opacity 0.2s; }
+        .sortable-header.sort-asc .sort-indicator { border-bottom: 5px solid; opacity: 1; }
+        .sortable-header.sort-desc .sort-indicator { border-top: 5px solid; opacity: 1; }
+        .nav-link { padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 500; transition: background-color 0.2s; }
+        .nav-link:hover { background-color: #f3f4f6; }
+        .dark-mode .nav-link:hover { background-color: #374151; }
+    </style>
+</head>
+<body class="with-faded-bg" >
+
+    <!-- [FIXED] Simplified Header with White Background -->
+    <header class="bg-white shadow-md py-4 px-6 md:px-10 flex flex-wrap justify-between items-center sticky top-0 z-30 gap-4">
+        <div class="flex items-center">
+            <span class="text-4xl font-bold text-red-600">SBS</span>
+            <span class="ml-2 text-xl font-semibold text-gray-800">Admin Panel</span>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <!-- [FIXED] Navigation Button -->
+            <nav>
+                <a href="dashboard.html" class="nav-link" data-i18n="navDashboard">Dashboard</a>
+            </nav>
+            
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <div class="relative">
+                    <button id="language-toggle-button" class="utility-button px-4 py-2 flex items-center gap-2">
+                        <span id="current-language-display">TH</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="language-dropdown" class="language-dropdown absolute right-0 mt-2 w-28 bg-white rounded-md shadow-lg hidden z-20 dark:bg-gray-700">
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" data-lang="th">ภาษาไทย</a>
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600" data-lang="en">English</a>
+                    </div>
+                </div>
+                <button id="theme-toggle" class="utility-button">
+                    <svg id="theme-icon-light" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                    <svg id="theme-icon-dark" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+                <button id="logout-button" class="btn-primary btn-gray" data-i18n="logout">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container py-8">
+        <section class="card">
+            <h1 class="text-2xl font-bold mb-6" data-i18n="title">Shipment Search</h1>
+            <form id="filter-form">
+                <fieldset class="filter-group">
+                    <legend data-i18n="groupShipmentId">Shipment Detail</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label for="trackingNumber" class="block text-sm font-medium" data-i18n="trackingNumber">Tracking Number</label>
+                            <input type="text" id="trackingNumber" class="input-field mt-1" placeholder="">
+                        </div>
+                        <div>
+                            <label for="bookingRef" class="block text-sm font-medium" data-i18n="bookingReference">Booking Reference</label>
+                            <input type="text" id="bookingRef" class="input-field mt-1" placeholder="CBJ...">
+                        </div>
+                        <div>
+                            <label for="reference" class="block text-sm font-medium" data-i18n="reference">Reference</label>
+                            <input type="text" id="reference" class="input-field mt-1">
+                        </div>
+                        <div>
+                            <label for="accountNumber" class="block text-sm font-medium" data-i18n="accountNumber">Account Number</label>
+                            <input type="text" id="accountNumber" class="input-field mt-1" placeholder="Shipper or Duty Account">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="filter-group">
+                    <legend data-i18n="groupCustomerDetail">Customer Detail</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <div>
+                            <label for="shipperName" class="block text-sm font-medium" data-i18n="shipperName">Shipper Name/Company</label>
+                            <input type="text" id="shipperName" class="input-field mt-1" placeholder="Name or Company Name">
+                        </div>
+                        <div>
+                            <label for="receiverName" class="block text-sm font-medium" data-i18n="receiverName">Receiver Name/Company</label>
+                            <input type="text" id="receiverName" class="input-field mt-1" placeholder="Name or Company Name">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-sm font-medium" data-i18n="phone">Phone Number</label>
+                            <input type="text" id="phone" class="input-field mt-1" placeholder="Shipper or Receiver Phone">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium" data-i18n="email">E-mail</label>
+                            <input type="email" id="email" class="input-field mt-1" placeholder="Shipper or Receiver E-mail">
+                        </div>
+                        <div>
+                            <label for="shipperCountry" class="block text-sm font-medium" data-i18n="shipperCountry">Shipper Country</label>
+                            <input type="text" id="shipperCountry" class="input-field mt-1" placeholder="Country Code">
+                        </div>
+                        <div>
+                            <label for="receiverCountry" class="block text-sm font-medium" data-i18n="receiverCountry">Receiver Country</label>
+                            <input type="text" id="receiverCountry" class="input-field mt-1" placeholder="Country Code">
+                        </div>
+                    </div>
+                </fieldset>
+                
+                <fieldset class="filter-group">
+                    <legend data-i18n="groupDateTime">Date & Time</legend>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label for="dateFrom" class="block text-sm font-medium" data-i18n="dateFrom">Date From</label>
+                            <input type="date" id="dateFrom" class="input-field mt-1">
+                        </div>
+                        <div>
+                            <label for="dateTo" class="block text-sm font-medium" data-i18n="dateTo">Date To</label>
+                            <input type="date" id="dateTo" class="input-field mt-1">
+                        </div>
+                        <div id="time-filter-group" class="hidden md:col-span-2 lg:col-span-2 grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="timeFrom" class="block text-sm font-medium" data-i18n="timeFrom">From Time</label>
+                                <input type="time" id="timeFrom" class="input-field mt-1">
+                            </div>
+                             <div>
+                                <label for="timeTo" class="block text-sm font-medium" data-i18n="timeTo">To Time</label>
+                                <input type="time" id="timeTo" class="input-field mt-1">
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="flex gap-2 mt-6">
+                    <button type="submit" id="search-button" class="btn-primary btn-yellow" data-i18n="search">Search</button>
+                    <button type="button" id="clear-button" class="btn-primary btn-gray" data-i18n="clear">Clear</button>
+                    <button type="button" id="export-csv-button" class="btn-primary btn-gray hidden" data-i18n="exportCsv">Export to CSV</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="results-section" class="mt-8">
+            <div id="loading-indicator" class="text-center py-8 hidden"><p data-i18n="loading">Loading data...</p></div>
+            <div id="no-results" class="text-center py-8 hidden"><p data-i18n="noResults">No results found...</p></div>
+            <div id="results-table-container" class="card p-0 table-responsive hidden">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead>
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider sortable-header" data-sort="created_at"><span data-i18n="colDate">Date</span><span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider sortable-header" data-sort="respond_trackingnumber"><span data-i18n="colTracking">Tracking #</span><span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider sortable-header" data-sort="shipper_name"><span data-i18n="colShipper">Shipper</span><span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider sortable-header" data-sort="receiver_name"><span data-i18n="colReceiver">Receiver</span><span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider sortable-header" data-sort="shipper_email"><span data-i18n="colEmail">Email</span><span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider sortable-header" data-sort="request_reference"><span data-i18n="colRef">Reference</span><span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" data-i18n="colAccount">Account</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider sortable-header" data-sort="booking_ref"><span data-i18n="colBookingRef">Booking Ref</span><span class="sort-indicator"></span></th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider" data-i18n="colDownloads">Downloads / Error</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                </table>
+            </div>
+            <div id="pagination-controls" class="flex justify-center items-center space-x-4 mt-6 hidden">
+                <button id="prev-page" class="btn-primary btn-gray disabled:opacity-50" disabled>&lt; Prev</button>
+                <span id="page-info">Page 1 of 1</span>
+                <button id="next-page" class="btn-primary btn-gray disabled:opacity-50" disabled>&gt; Next</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('dbs_admin_logged_in') !== 'true') {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const API_BASE_URL = 'https://sbs-back.vercel.app/api';
+
+            const translations = {
+                'th': {
+                    'title': 'ค้นหาข้อมูลชิปเมนต์', 'logout': 'ออกจากระบบ', 'trackingNumber': 'หมายเลขติดตามพัสดุ', 'shipperName': 'ชื่อ/บริษัทผู้ส่ง',
+                    'receiverName': 'ชื่อ/บริษัทผู้รับ', 'reference': 'เลขที่อ้างอิง', 'bookingReference': 'Booking Reference', 'accountNumber': 'หมายเลขบัญชี', 'phone': 'เบอร์โทรศัพท์', 'email': 'อีเมล', 'shipperCountry': 'ประเทศผู้ส่ง',
+                    'receiverCountry': 'ประเทศผู้รับ', 'dateFrom': 'จากวันที่', 'dateTo': 'ถึงวันที่', 'timeFrom': 'จากเวลา', 'timeTo': 'ถึงเวลา',
+                    'search': 'ค้นหา', 'clear': 'ล้างค่า', 'loading': 'กำลังโหลดข้อมูล...', 'noResults': 'ไม่พบข้อมูลตามเงื่อนไขที่เลือก', 'colDate': 'วันที่', 
+                    'colTracking': 'หมายเลขติดตาม', 'colShipper': 'ผู้ส่ง', 'colReceiver': 'ผู้รับ', 'colEmail': 'อีเมล', 'colRef': 'อ้างอิง', 'colAccount': 'บัญชี', 'colBookingRef': 'Booking Ref', 'errorLoading': 'เกิดข้อผิดพลาดในการโหลดข้อมูล',
+                    'colDownloads': 'ดาวน์โหลด / ข้อผิดพลาด', 'downloadLabel': 'Label', 'downloadReceipt': 'Receipt', 'downloadInvoice': 'Invoice', 'downloadFailed': 'ดาวน์โหลดไฟล์ล้มเหลว',
+                    'groupShipmentId': 'Shipment Detail', 'groupCustomerDetail': 'Customer Detail', 'groupDateTime': 'วันและเวลา', 'pageInfo': 'หน้า {currentPage} จาก {totalPages}',
+                    'navDashboard': 'แดชบอร์ด', 'navSearch': 'ค้นหา', 'exportCsv': 'ส่งออกเป็น CSV'
+                },
+                'en': {
+                    'title': 'Shipment Search', 'logout': 'Logout', 'trackingNumber': 'Tracking Number', 'shipperName': 'Shipper Name/Company',
+                    'receiverName': 'Receiver Name/Company', 'reference': 'Reference', 'bookingReference': 'Booking Reference', 'accountNumber': 'Account Number', 'phone': 'Phone Number', 'email': 'E-mail', 'shipperCountry': 'Shipper Country',
+                    'receiverCountry': 'Receiver Country', 'dateFrom': 'Date From', 'dateTo': 'Date To', 'timeFrom': 'From Time', 'timeTo': 'To Time',
+                    'search': 'Search', 'clear': 'Clear', 'loading': 'Loading data...', 'noResults': 'No results found for the selected filters.', 'colDate': 'Date', 
+                    'colTracking': 'Tracking #', 'colShipper': 'Shipper', 'colReceiver': 'Receiver', 'colEmail': 'Email', 'colRef': 'Reference', 'colAccount': 'Account', 'colBookingRef': 'Booking Ref', 'errorLoading': 'Error loading data. Please try again.',
+                    'colDownloads': 'Downloads / Error', 'downloadLabel': 'Label', 'downloadReceipt': 'Receipt', 'downloadInvoice': 'Invoice', 'downloadFailed': 'Could not download the file',
+                    'groupShipmentId': 'Shipment Detail', 'groupCustomerDetail': 'Customer Detail', 'groupDateTime': 'Date & Time', 'pageInfo': 'Page {currentPage} of {totalPages}',
+                    'navDashboard': 'Dashboard', 'navSearch': 'Search', 'exportCsv': 'Export to CSV'
+                }
+            };
+            let currentLanguage = localStorage.getItem('language') || 'th';
+            
+            let allLogs = [];
+            let currentPage = 1;
+            const rowsPerPage = 10;
+            let sortColumn = 'created_at';
+            let sortDirection = 'desc';
+            let abortController = null; // Controller for fetch requests
+
+            const filterForm = document.getElementById('filter-form');
+            const resultsTbody = document.getElementById('results-tbody');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const noResultsDiv = document.getElementById('no-results');
+            const resultsContainer = document.getElementById('results-table-container');
+            const dateFromInput = document.getElementById('dateFrom');
+            const dateToInput = document.getElementById('dateTo');
+            const timeFilterGroup = document.getElementById('time-filter-group');
+            const paginationControls = document.getElementById('pagination-controls');
+            const prevPageBtn = document.getElementById('prev-page');
+            const nextPageBtn = document.getElementById('next-page');
+            const pageInfoSpan = document.getElementById('page-info');
+            const exportCsvButton = document.getElementById('export-csv-button');
+            const logoutButton = document.getElementById('logout-button');
+
+            function updateContentLanguage() {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    const span = el.querySelector('span[data-i18n]');
+                    if (span) {
+                       span.textContent = translations[currentLanguage][key] || key;
+                    } else if (el.tagName !== 'INPUT') {
+                       el.textContent = translations[currentLanguage][key] || key;
+                    }
+                });
+                document.getElementById('current-language-display').textContent = currentLanguage.toUpperCase();
+
+                if (allLogs.length > 0) {
+                    updatePagination();
+                }
+            }
+
+            function setupTheme() {
+                const themeToggle = document.getElementById('theme-toggle');
+                const lightIcon = document.getElementById('theme-icon-light');
+                const darkIcon = document.getElementById('theme-icon-dark');
+
+                const enableDarkMode = () => {
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('theme', 'dark');
+                    lightIcon.classList.add('hidden');
+                    darkIcon.classList.remove('hidden');
+                };
+                const disableDarkMode = () => {
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('theme', 'light');
+                    lightIcon.classList.remove('hidden');
+                    darkIcon.classList.add('hidden');
+                };
+
+                themeToggle.addEventListener('click', () => {
+                    document.body.classList.contains('dark-mode') ? disableDarkMode() : enableDarkMode();
+                });
+
+                if (localStorage.getItem('theme') === 'dark') enableDarkMode(); else disableDarkMode();
+            }
+
+            function setupLanguageSwitch() {
+                const langToggle = document.getElementById('language-toggle-button');
+                const langDropdown = document.getElementById('language-dropdown');
+
+                langToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    langDropdown.classList.toggle('hidden');
+                });
+
+                document.querySelectorAll('[data-lang]').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        currentLanguage = e.target.dataset.lang;
+                        localStorage.setItem('language', currentLanguage);
+                        updateContentLanguage();
+                        langDropdown.classList.add('hidden');
+                    });
+                });
+                
+                window.addEventListener('click', () => langDropdown.classList.add('hidden'));
+            }
+            
+            logoutButton.addEventListener('click', () => {
+                sessionStorage.removeItem('dbs_admin_logged_in');
+                window.location.href = 'login.html';
+            });
+
+
+            function downloadPdfFromBase64(base64String, fileName) {
+                try {
+                    const byteCharacters = atob(base64String);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'application/pdf' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                } catch (error) {
+                    console.error('Download failed:', error);
+                    alert(translations[currentLanguage]['downloadFailed']);
+                }
+            }
+
+            function toggleTimeFilter() {
+                const show = dateFromInput.value && dateToInput.value && dateFromInput.value === dateToInput.value;
+                timeFilterGroup.classList.toggle('hidden', !show);
+                if (!show) {
+                    document.getElementById('timeFrom').value = '';
+                    document.getElementById('timeTo').value = '';
+                }
+            }
+            
+            function exportToCSV() {
+                if (allLogs.length === 0) {
+                    alert('No data to export.');
+                    return;
+                }
+                const headers = [
+                    "Created At", "Log Type", "Tracking Number", "Shipper Name", "Shipper Company", "Shipper Email", "Shipper Country",
+                    "Receiver Name", "Receiver Company", "Receiver Email", "Receiver Country", "Request Reference", "Shipper Account", "Duty Account",
+                    "Booking Ref", "Respond Warnings"
+                ];
+
+                const escapeCsvCell = (cell) => {
+                    const str = (cell === null || cell === undefined) ? '' : String(cell);
+                    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                        return `"${str.replace(/"/g, '""')}"`;
+                    }
+                    return str;
+                };
+                
+                const csvRows = [headers.join(',')];
+
+                allLogs.forEach(log => {
+                    const row = [
+                        log.created_at,
+                        log.log_type,
+                        log.respond_trackingnumber,
+                        log.shipper_name,
+                        log.shipper_company,
+                        log.shipper_email,
+                        log.shipper_country,
+                        log.receiver_name,
+                        log.receiver_company,
+                        log.receiver_email,
+                        log.receiver_country,
+                        log.request_reference,
+                        log.shipper_account_number,
+                        log.duty_account_number,
+                        log.booking_ref,
+                        log.respond_warnings
+                    ].map(escapeCsvCell);
+                    csvRows.push(row.join(','));
+                });
+
+                const csvString = csvRows.join('\n');
+                const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                const today = new Date().toISOString().slice(0, 10);
+                link.setAttribute('download', `sbs_export_${today}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            dateFromInput.addEventListener('change', toggleTimeFilter);
+            dateToInput.addEventListener('change', toggleTimeFilter);
+            
+            filterForm.addEventListener('submit', (e) => { 
+                e.preventDefault(); 
+                fetchLogs(); 
+            });
+            
+            document.getElementById('clear-button').addEventListener('click', () => { 
+                filterForm.reset();
+                setDefaultDates(); // Reset dates to today
+                toggleTimeFilter();
+                resultsContainer.classList.add('hidden');
+                noResultsDiv.classList.add('hidden');
+                paginationControls.classList.add('hidden');
+                exportCsvButton.classList.add('hidden');
+            });
+            
+            exportCsvButton.addEventListener('click', exportToCSV);
+
+            prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            nextPageBtn.addEventListener('click', () => {
+                const totalPages = Math.ceil(allLogs.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+
+            async function fetchLogs() {
+                // Cancel any ongoing fetch request
+                if (abortController) {
+                    abortController.abort();
+                }
+                // Create a new controller for the new request
+                abortController = new AbortController();
+                const signal = abortController.signal;
+
+                loadingIndicator.classList.remove('hidden');
+                resultsContainer.classList.add('hidden');
+                noResultsDiv.classList.add('hidden');
+                paginationControls.classList.add('hidden');
+                exportCsvButton.classList.add('hidden');
+
+                const params = new URLSearchParams();
+                const fields = ['trackingNumber', 'bookingRef', 'shipperName', 'receiverName', 'reference', 'accountNumber', 'phone', 'email', 'shipperCountry', 'receiverCountry', 'dateFrom', 'dateTo', 'timeFrom', 'timeTo'];
+                fields.forEach(field => {
+                    const value = document.getElementById(field)?.value;
+                    if (value) params.append(field, value);
+                });
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/query-logs?${params.toString()}`, { signal });
+                    if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
+                    allLogs = await response.json();
+                    sortData();
+                    currentPage = 1;
+                    renderTable();
+                } catch (error) {
+                    if (error.name === 'AbortError') {
+                        console.log('Fetch aborted by user.');
+                    } else {
+                        console.error('Error fetching logs:', error);
+                        resultsTbody.innerHTML = `<tr><td colspan="9" class="text-center text-red-500 p-4" data-i18n="errorLoading"></td></tr>`;
+                        updateContentLanguage();
+                        resultsContainer.classList.remove('hidden');
+                    }
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            }
+            
+            function sortData() {
+                allLogs.sort((a, b) => {
+                    let valA = a[sortColumn];
+                    let valB = b[sortColumn];
+
+                    if (valA === null || valA === undefined) return 1;
+                    if (valB === null || valB === undefined) return -1;
+                    
+                    // Special handling for email sort to combine shipper and receiver
+                    if (sortColumn === 'shipper_email') {
+                        valA = a.shipper_email || a.receiver_email;
+                        valB = b.shipper_email || b.receiver_email;
+                    }
+
+                    let comparison = 0;
+                    if (valA > valB) {
+                        comparison = 1;
+                    } else if (valA < valB) {
+                        comparison = -1;
+                    }
+
+                    return sortDirection === 'desc' ? comparison * -1 : comparison;
+                });
+            }
+
+            function renderTable() {
+                resultsTbody.innerHTML = '';
+                if (!allLogs || allLogs.length === 0) {
+                    noResultsDiv.classList.remove('hidden');
+                    resultsContainer.classList.add('hidden');
+                    paginationControls.classList.add('hidden');
+                    exportCsvButton.classList.add('hidden');
+                    return;
+                }
+                
+                const startIndex = (currentPage - 1) * rowsPerPage;
+                const endIndex = startIndex + rowsPerPage;
+                const paginatedLogs = allLogs.slice(startIndex, endIndex);
+
+                paginatedLogs.forEach(log => {
+                    const row = document.createElement('tr');
+                    
+                    let formattedDate = 'N/A';
+                    if (log.created_at) {
+                        try {
+                           const dateObj = new Date(log.created_at);
+                           const time = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                           const year = currentLanguage === 'th' ? dateObj.getFullYear() + 543 : dateObj.getFullYear();
+                           const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                           const monthNamesTh = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+                           const monthName = currentLanguage === 'th' ? monthNamesTh[dateObj.getMonth()] : monthNamesEn[dateObj.getMonth()];
+                           formattedDate = `${dateObj.getDate()} ${monthName} ${String(year).slice(-2)}, ${time}`;
+                        } catch (e) {
+                            formattedDate = log.created_at.substring(0, 16); // Fallback
+                        }
+                    }
+
+                    const shipperAccount = log.shipper_account_number || '';
+                    const dutyAccount = log.duty_account_number || '';
+                    const accountDisplay = [shipperAccount, dutyAccount].filter(Boolean).join(' / ');
+
+                    const trackingDisplay = log.log_type === 'Error'
+                        ? `<span class="text-red-500 font-bold">Error</span>`
+                        : `<span class="font-medium text-red-600 dark:text-amber-400">${log.respond_trackingnumber || ''}</span>`;
+                    
+                    const shipperEmail = log.shipper_email ? `<div class="text-xs">S: ${log.shipper_email}</div>` : '';
+                    const receiverEmail = log.receiver_email ? `<div class="text-xs">R: ${log.receiver_email}</div>` : '';
+                    const emailDisplay = `${shipperEmail}${receiverEmail}`;
+
+                    let downloadsCellContent;
+                    if (log.log_type === 'Error') {
+                        let warningText = log.respond_warnings || 'Error log without specific warning.';
+
+                        if (warningText.includes('Additional Details:')) {
+                            const mainParts = warningText.split('; Additional Details:');
+                            let formattedHtml = mainParts[0] + ';'; 
+
+                            if (mainParts.length > 1) {
+                                formattedHtml += '<br><b>Additional Details:</b>';
+                                const details = mainParts[1].split(';').filter(d => d.trim() !== '');
+                                details.forEach(detail => {
+                                    formattedHtml += `<br>- ${detail.trim()}`;
+                                });
+                            }
+                            warningText = formattedHtml;
+                        }
+                        
+                        downloadsCellContent = `<div class="text-red-500 text-xs text-left">${warningText}</div>`;
+                    } else {
+                        const labelButton = log.respond_label ? `<button class="btn-download btn-download-label" data-pdf-type="label">${translations[currentLanguage]['downloadLabel']}</button>` : '';
+                        const receiptButton = log.respond_receipt ? `<button class="btn-download btn-download-doc" data-pdf-type="receipt">${translations[currentLanguage]['downloadReceipt']}</button>` : '';
+                        const invoiceButton = log.respond_invoice ? `<button class="btn-download btn-download-doc" data-pdf-type="invoice">${translations[currentLanguage]['downloadInvoice']}</button>` : '';
+                        downloadsCellContent = `<div class="flex flex-col space-y-1 md:flex-row md:space-y-0 md:space-x-1">${labelButton}${receiptButton}${invoiceButton}</div>`;
+                    }
+
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${formattedDate}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${trackingDisplay}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <div>${log.shipper_name || ''} (${log.shipper_country || ''})</div>
+                            <div class="text-xs text-gray-500">${log.shipper_company || ''}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <div>${log.receiver_name || ''} (${log.receiver_country || ''})</div>
+                            <div class="text-xs text-gray-500">${log.receiver_company || ''}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${emailDisplay}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${log.request_reference || ''}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${accountDisplay}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">${log.booking_ref || ''}</td>
+                        <td class="px-6 py-4 text-sm space-x-1">${downloadsCellContent}</td>
+                    `;
+                    resultsTbody.appendChild(row);
+
+                    row.querySelectorAll('button[data-pdf-type]').forEach(button => {
+                        button.addEventListener('click', () => {
+                            const type = button.dataset.pdfType;
+                            const trackingNumber = log.respond_trackingnumber || 'document';
+                            let base64Data, fileName;
+                            if (type === 'label') { base64Data = log.respond_label; fileName = `${trackingNumber}_Label.pdf`; }
+                            else if (type === 'receipt') { base64Data = log.respond_receipt; fileName = `${trackingNumber}_Receipt.pdf`; }
+                            else if (type === 'invoice') { base64Data = log.respond_invoice; fileName = `${trackingNumber}_Invoice.pdf`; }
+                            if (base64Data) downloadPdfFromBase64(base64Data, fileName);
+                        });
+                    });
+                });
+                
+                updatePagination();
+                updateSortIndicators();
+                resultsContainer.classList.remove('hidden');
+                paginationControls.classList.remove('hidden');
+                exportCsvButton.classList.remove('hidden');
+            }
+
+            function updatePagination() {
+                const totalPages = Math.ceil(allLogs.length / rowsPerPage);
+                pageInfoSpan.textContent = translations[currentLanguage]['pageInfo']
+                    .replace('{currentPage}', currentPage)
+                    .replace('{totalPages}', totalPages || 1);
+                
+                prevPageBtn.disabled = currentPage === 1;
+                nextPageBtn.disabled = currentPage === totalPages || totalPages === 0;
+            }
+
+            function updateSortIndicators() {
+                document.querySelectorAll('.sortable-header').forEach(header => {
+                    header.classList.remove('sort-asc', 'sort-desc');
+                    if (header.dataset.sort === sortColumn) {
+                        header.classList.add(sortDirection === 'asc' ? 'sort-asc' : 'sort-desc');
+                    }
+                });
+            }
+
+            function setupSorting() {
+                document.querySelectorAll('.sortable-header').forEach(header => {
+                    header.addEventListener('click', () => {
+                        const newSortColumn = header.dataset.sort;
+                        if (sortColumn === newSortColumn) {
+                            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                        } else {
+                            sortColumn = newSortColumn;
+                            sortDirection = 'asc'; // Default to ascending when changing column
+                        }
+                        sortData();
+                        currentPage = 1;
+                        renderTable();
+                    });
+                });
+            }
+
+            function setDefaultDates() {
+                const today = new Date().toISOString().slice(0, 10);
+                dateFromInput.value = today;
+                dateToInput.value = today;
+            }
+            
+            // --- Initial Setup ---
+            setupTheme();
+            setupLanguageSwitch();
+            setupSorting();
+            setDefaultDates();
+			toggleTimeFilter();
+            updateContentLanguage();
+            // Removed the automatic fetchLogs() call from here
+        });
+    </script>
+</body>
+</html>
+

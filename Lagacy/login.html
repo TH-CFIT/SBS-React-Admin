@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DHL Backup Solution Admin - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+	<link rel="icon" href="DBS_Icon2.jpg" type="image/jpg">
+    <!-- ไม่ต้องมี <style> ในนี้แล้ว -->
+</head>
+<!-- เพิ่ม class ใหม่ที่ body เพื่อเรียกใช้สไตล์จาก styles.css -->
+<body class="layout-centered with-faded-bg">
+    
+    <div class="card login-card">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-red-600">SBS</h1>
+            <h2 class="text-2xl font-semibold text-black-900 dark:text-black-200 mt-2">Admin Panel</h2>
+        </div>
+        
+        <form id="login-form" class="space-y-6">
+            <div>
+                <label for="username" class="block text-sm font-medium text-black-900 dark:text-black-300">Username</label>
+                <div class="mt-1">
+                    <input id="username" name="username" type="text" required class="input-field">
+                </div>
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-black-900 dark:text-black-300">Password</label>
+                <div class="mt-1 relative">
+                    <input id="password" name="password" type="password" required class="input-field pr-10">
+                    <button type="button" id="toggle-password-visibility" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none">
+                        <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                        </svg>
+                        <svg id="eye-slash-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2 2 0 012.828 2.828l1.515 1.515A4 4 0 0014 10a4 4 0 10-5.475-2.43l-1.515-1.515a4.001 4.001 0 00-1.522.707z" clip-rule="evenodd" />
+                            <path d="M10.707 15.707a1 1 0 01-1.414 0l-1.414-1.414a1 1 0 111.414-1.414l1.414 1.414a1 1 0 010 1.414zM4.458 10a9.953 9.953 0 001.362 3.395l.817-.817A4 4 0 0110 14a4 4 0 012.365-3.667l.817.817A9.953 9.953 0 0015.542 10C14.268 5.943 10.478 3 6 3a9.953 9.953 0 00-1.542 7z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="error-message" class="p-3 rounded-md text-center hidden bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300"></div>
+
+            <div>
+                <button type="submit" id="login-button" class="w-full btn-primary btn-red">
+                    <span id="login-button-text">Sign In</span>
+                    <div id="login-spinner" class="animate-spin rounded-full h-5 w-5 border-b-2 border-white hidden"></div>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('login-form');
+            const errorMessageDiv = document.getElementById('error-message');
+            const loginButton = document.getElementById('login-button');
+            const loginButtonText = document.getElementById('login-button-text');
+            const loginSpinner = document.getElementById('login-spinner');
+            
+            const passwordInput = document.getElementById('password');
+            const toggleButton = document.getElementById('toggle-password-visibility');
+            const eyeIcon = document.getElementById('eye-icon');
+            const eyeSlashIcon = document.getElementById('eye-slash-icon');
+
+            toggleButton.addEventListener('click', () => {
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+                eyeIcon.classList.toggle('hidden', isPassword);
+                eyeSlashIcon.classList.toggle('hidden', !isPassword);
+            });
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                errorMessageDiv.classList.add('hidden');
+                loginButton.disabled = true;
+                loginButtonText.classList.add('hidden');
+                loginSpinner.classList.remove('hidden');
+
+                const username = document.getElementById('username').value;
+                const password = passwordInput.value;
+
+                try {
+                    const response = await fetch('https://sbs-back.vercel.app/api/admin-login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password }),
+                    });
+
+                    if (response.ok) {
+                        sessionStorage.setItem('dbs_admin_logged_in', 'true');
+                        window.location.href = 'index.html';
+                    } else {
+                        const errorData = await response.json();
+                        errorMessageDiv.textContent = errorData.message || 'Invalid username or password.';
+                        errorMessageDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    console.error('Login Error:', error);
+                    errorMessageDiv.textContent = 'Could not connect to the server. Please try again later.';
+                    errorMessageDiv.classList.remove('hidden');
+                } finally {
+                    loginButton.disabled = false;
+                    loginButtonText.classList.remove('hidden');
+                    loginSpinner.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+
