@@ -39,11 +39,19 @@ export default async function handler(req, res) {
             
             // To write to edge config, we need VERCEL_ACCESS_TOKEN and EDGE_CONFIG_ID
             const token = process.env.VERCEL_ACCESS_TOKEN;
-            const edgeConfigId = process.env.EDGE_CONFIG_ID;
+            let edgeConfigId = process.env.EDGE_CONFIG_ID;
+
+            // If ID is missing, try to extract it from the EDGE_CONFIG URL
+            if (!edgeConfigId && process.env.EDGE_CONFIG) {
+                const url = process.env.EDGE_CONFIG;
+                // Matches the ID between the last slash and the question mark
+                const match = url.match(/\/([^/?]+)(\?|$)/);
+                if (match) edgeConfigId = match[1];
+            }
 
             if (!token || !edgeConfigId) {
                 return res.status(500).json({ 
-                    message: 'Missing VERCEL_ACCESS_TOKEN or EDGE_CONFIG_ID in environment variables.' 
+                    message: `Missing configuration. Token: ${!!token}, ID: ${!!edgeConfigId}. Please ensure VERCEL_ACCESS_TOKEN is set in Vercel.` 
                 });
             }
 
