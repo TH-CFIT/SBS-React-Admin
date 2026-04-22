@@ -39,25 +39,29 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activePage, onNavigate
       {/* Desktop Nav */}
       <div className="hidden sm:flex items-center gap-3">
         {/* Page Navigation */}
-        <nav className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 rounded-lg p-1">
-          <button
-            onClick={() => onNavigate('search')}
-            className={`nav-link flex items-center gap-2 ${activePage === 'search' ? 'active' : ''}`}
-          >
-            <Search className="w-4 h-4" />
-            {t('navSearch')}
-          </button>
-          <button
-            onClick={() => onNavigate('dashboard')}
-            className={`nav-link flex items-center gap-2 ${activePage === 'dashboard' ? 'active' : ''}`}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            {t('navDashboard')}
-          </button>
-        </nav>
+        {sessionStorage.getItem('dbs_environment') !== 'Setting' && (
+          <>
+            <nav className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700/50 rounded-lg p-1">
+              <button
+                onClick={() => onNavigate('search')}
+                className={`nav-link flex items-center gap-2 ${activePage === 'search' ? 'active' : ''}`}
+              >
+                <Search className="w-4 h-4" />
+                {t('navSearch')}
+              </button>
+              <button
+                onClick={() => onNavigate('dashboard')}
+                className={`nav-link flex items-center gap-2 ${activePage === 'dashboard' ? 'active' : ''}`}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                {t('navDashboard')}
+              </button>
+            </nav>
 
-        {/* Divider */}
-        <div className="h-8 w-px bg-gray-200 dark:bg-gray-600" />
+            {/* Divider */}
+            <div className="h-8 w-px bg-gray-200 dark:bg-gray-600" />
+          </>
+        )}
 
         {/* Language Dropdown */}
         <div className="relative">
@@ -124,20 +128,24 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ activePage, onNavigate
             </div>
 
             {/* Navigation Buttons */}
-            <button
-              onClick={() => { onNavigate('search'); setIsMenuOpen(false); }}
-              className={`w-full p-4 rounded-xl text-left border flex items-center gap-3 ${activePage === 'search' ? 'bg-dhl-red/10 border-dhl-red font-bold text-dhl-red' : 'border-gray-200 dark:border-gray-700'}`}
-            >
-              <Search className="w-5 h-5" />
-              {t('navSearch')}
-            </button>
-            <button
-              onClick={() => { onNavigate('dashboard'); setIsMenuOpen(false); }}
-              className={`w-full p-4 rounded-xl text-left border flex items-center gap-3 ${activePage === 'dashboard' ? 'bg-dhl-red/10 border-dhl-red font-bold text-dhl-red' : 'border-gray-200 dark:border-gray-700'}`}
-            >
-              <LayoutDashboard className="w-5 h-5" />
-              {t('navDashboard')}
-            </button>
+            {sessionStorage.getItem('dbs_environment') !== 'Setting' && (
+              <>
+                <button
+                  onClick={() => { onNavigate('search'); setIsMenuOpen(false); }}
+                  className={`w-full p-4 rounded-xl text-left border flex items-center gap-3 ${activePage === 'search' ? 'bg-dhl-red/10 border-dhl-red font-bold text-dhl-red' : 'border-gray-200 dark:border-gray-700'}`}
+                >
+                  <Search className="w-5 h-5" />
+                  {t('navSearch')}
+                </button>
+                <button
+                  onClick={() => { onNavigate('dashboard'); setIsMenuOpen(false); }}
+                  className={`w-full p-4 rounded-xl text-left border flex items-center gap-3 ${activePage === 'dashboard' ? 'bg-dhl-red/10 border-dhl-red font-bold text-dhl-red' : 'border-gray-200 dark:border-gray-700'}`}
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  {t('navDashboard')}
+                </button>
+              </>
+            )}
 
             {/* Language */}
             <div className="space-y-2">

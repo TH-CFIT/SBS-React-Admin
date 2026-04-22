@@ -141,6 +141,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             >
               <option value="Prod">Production</option>
               <option value="Test">Test</option>
+              <option value="Setting">Setting</option>
             </select>
           </div>
 

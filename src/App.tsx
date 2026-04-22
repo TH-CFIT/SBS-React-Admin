@@ -5,6 +5,7 @@ import { AdminHeader } from './components/AdminHeader';
 import { LoginPage } from './pages/LoginPage';
 import { SearchPage } from './pages/SearchPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 type AdminPage = 'search' | 'dashboard';
 
@@ -53,7 +54,11 @@ const AppContent: React.FC = () => {
       />
 
       <main className="flex-grow container mx-auto px-4 sm:px-6 py-6 md:py-8 max-w-7xl">
-        {activePage === 'dashboard' ? <DashboardPage /> : <SearchPage />}
+        {sessionStorage.getItem('dbs_environment') === 'Setting' ? (
+          <SettingsPage />
+        ) : (
+          activePage === 'dashboard' ? <DashboardPage /> : <SearchPage />
+        )}
       </main>
     </div>
   );
