@@ -57,39 +57,63 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
+    <div className="min-h-screen flex items-center justify-center p-4 relative font-sans">
       {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-dhl-red/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-dhl-yellow/20 rounded-full blur-3xl" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-950">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-dhl-red/20 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen opacity-70 animate-[pulse_8s_ease-in-out_infinite]" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-dhl-yellow/20 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-screen opacity-70 animate-[pulse_8s_ease-in-out_infinite_2s]" />
       </div>
 
       {/* Top-right controls */}
-      <div className="fixed top-4 right-4 flex items-center gap-2 z-10">
+      <div className="fixed top-4 right-4 flex items-center gap-3 z-10">
         <button
           onClick={() => setLanguage(language === 'th' ? 'en' : 'th')}
-          className="utility-button px-3 py-2 flex items-center gap-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+          className="px-4 py-2 rounded-xl flex items-center gap-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all active:scale-95"
         >
           <Globe className="w-4 h-4 text-dhl-red" />
-          <span className="text-sm font-bold">{language.toUpperCase()}</span>
+          <span className="text-sm font-bold tracking-wide">{language.toUpperCase()}</span>
         </button>
-        <button onClick={toggleTheme} className="utility-button bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+        <button onClick={toggleTheme} className="p-2.5 rounded-xl bg-white/60 dark:bg-gray-800/60 backdrop-blur-xl border border-white/50 dark:border-gray-700/50 shadow-sm hover:shadow-md transition-all active:scale-95">
           {isDarkMode ? <Sun className="w-5 h-5 text-dhl-yellow" /> : <Moon className="w-5 h-5 text-gray-600" />}
         </button>
       </div>
 
-      <div className="card max-w-md w-full relative z-[1] animate-[fadeIn_0.5s_ease-out]">
+      <div className="w-full max-w-md p-10 rounded-[2rem] bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl border border-white/50 dark:border-gray-700/50 shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] relative z-[1] animate-[fadeIn_0.5s_ease-out]">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <h1 className="text-5xl font-black text-dhl-red tracking-tight">SBS</h1>
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mt-2">{t('loginTitle')}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t('loginSubtitle')}</p>
+        <div className="text-center mb-10">
+          <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-br from-dhl-red to-red-700 dark:to-red-400 tracking-tighter drop-shadow-sm mb-2">SBS</h1>
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">{t('loginTitle')}</h2>
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">{t('loginSubtitle')}</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Environment */}
+          <div>
+            <label htmlFor="login-environment" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ml-1">
+              Environment
+            </label>
+            <div className="relative">
+              <select
+                id="login-environment"
+                value={environment}
+                onChange={(e) => setEnvironment(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-dhl-red/30 focus:border-dhl-red transition-all cursor-pointer appearance-none font-medium"
+              >
+                <option value="Prod">Production</option>
+                <option value="Test">Test</option>
+                <option value="Setting">Setting</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                  <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
           {/* Username */}
           <div>
-            <label htmlFor="login-username" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="login-username" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ml-1">
               {t('username')}
             </label>
             <input
@@ -98,14 +122,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               required
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="input-field"
+              className="w-full px-4 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-dhl-red/30 focus:border-dhl-red transition-all font-medium"
               autoComplete="username"
             />
           </div>
 
           {/* Password */}
           <div>
-            <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 ml-1">
               {t('password')}
             </label>
             <div className="relative">
@@ -115,39 +139,22 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-field pr-12"
+                className="w-full px-4 py-3.5 pr-12 rounded-xl border border-gray-200 dark:border-gray-700 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-dhl-red/30 focus:border-dhl-red transition-all font-medium"
                 autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                className="absolute inset-y-0 right-0 px-4 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
 
-          {/* Environment */}
-          <div>
-            <label htmlFor="login-environment" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Environment
-            </label>
-            <select
-              id="login-environment"
-              value={environment}
-              onChange={(e) => setEnvironment(e.target.value)}
-              className="input-field cursor-pointer"
-            >
-              <option value="Prod">Production</option>
-              <option value="Test">Test</option>
-              <option value="Setting">Setting</option>
-            </select>
-          </div>
-
           {/* Error */}
           {errorMessage && (
-            <div className="p-3 rounded-lg text-center bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm font-medium border border-red-200 dark:border-red-800">
+            <div className="p-3 mt-4 rounded-xl text-center bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 text-sm font-medium border border-red-200 dark:border-red-800">
               {errorMessage}
             </div>
           )}
@@ -156,7 +163,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full btn-primary btn-red text-lg"
+            className="w-full mt-6 py-4 bg-gradient-to-r from-dhl-red to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-red-500/30 hover:shadow-red-500/40 transform hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
           >
             {isLoading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
